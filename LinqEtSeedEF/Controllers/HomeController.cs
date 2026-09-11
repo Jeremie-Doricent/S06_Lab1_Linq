@@ -69,10 +69,19 @@ namespace LinqEtSeedEF.Controllers
             // TODO: Écrire la logique pour trouver le prix du plat le plus cher avec une boucle
             var liste = _context.Plat.ToList();
             decimal prix = 0;
+            foreach (var pris in _context.Plat)
+            {
+                if(prix < pris.Prix)
+                {
+                    prix = pris.Prix;
+                }
+
+            }
             // TODO: Écrire la logique pour trouver le prix du plat le plus cher avec Linq
             // Utilisez Max
             decimal prixLinq = 0;
-
+            decimal chere = _context.Plat.Max(p => p.Prix);
+            prixLinq = chere;
             return new DecimalViewModel("Quel est le prix du plat le plus cher?", prix, prixLinq);
         }
 
@@ -80,33 +89,73 @@ namespace LinqEtSeedEF.Controllers
         {
             // TODO: Calculer la valeur totale des plats avec boucle et Linq
             // Utilisez Sum avec Linq
-            return new DecimalViewModel("Quelle est la valeur totale des plats?", 0, 0);
+            decimal val = _context.Plat.Sum(z => z.Prix);
+            decimal jf = 0;
+            foreach (var pris in _context.Plat)
+            {
+             jf+=pris.Prix;
+
+            }
+
+            return new DecimalViewModel("Quelle est la valeur totale des plats?", val, jf);
         }
 
         private DecimalViewModel ValeurTotalDesCommandes(string nomClient)
         {
             // TODO: Calculer la valeur totale des commandes du client [nomClient] avec boucle et Linq
-            
+
             // Linq: Utilisez Where et 2 fois Sum
-            var listeLinq = _context.Commande.ToList();
+            var totallinq = _context.Commande.ToList().Where(n => n.Client.Nom == nomClient).Sum(c => c.CommandesPlats.Sum(cp => cp.Quantite * cp.Plat.Prix));
             // Attention: c'est plus facile si vous faites un ToList() et faites le linq sur la liste et non pas le DbSet
             // on en parlera au prochain cours
             // Faites votre requête Linq sur listeLinq
+            decimal total = 0;
 
-            return new DecimalViewModel("Quelle est la valeur totale des commandes de " + nomClient + "?", 0, 0);
+            foreach (var prix in _context.Commande)
+            {
+                if(nomClient == prix.Client.Nom)
+                {
+                    decimal somme = 0;
+                    foreach (var cp  in prix.CommandesPlats)
+                    {
+                        somme += cp.Quantite * cp.Plat.Prix;
+                    }
+
+                    total += somme;
+                }
+
+            }
+
+            return new DecimalViewModel("Quelle est la valeur totale des commandes de " + nomClient + "?", total, totallinq);
         }
 
         private DecimalViewModel PrixCommandeLaPlusCher()
         {
             // TODO: Trouver le côut total de la commande la plus chère
-            
+
             // Linq: Utilisez Sum et Max
-            var listeLinq = _context.Commande.ToList();
+            var listeLinq = _context.Commande.ToList().Sum(c => c.CommandesPlats.Max(a => a.Plat.Prix));
             // Attention: c'est plus facile si vous faites un ToList() et faites le linq sur la liste et non pas le DbSet
             // on en parlera au prochain cours
             // Faites votre requête Linq sur listeLinq
+            decimal total = 0;
+            var re = 0;
+            foreach(var asa in _context.Commande)
+            {
+                
+                decimal bub = 0;
+                foreach (var za in asa.CommandesPlats)
+                {
+                   if(bub < za.Plat.Prix)
+                    {
+                        bub = za.Plat.Prix;
 
-            return new DecimalViewModel("Quel est le prix de la commande la plus chère?", 0, 0);
+                        total = bub;
+                    }
+                }
+            
+            }
+            return new DecimalViewModel("Quel est le prix de la commande la plus chère?", listeLinq,total );
         }
 
         private VegetarienViewModel Vegetarien(string nomDuResto)
